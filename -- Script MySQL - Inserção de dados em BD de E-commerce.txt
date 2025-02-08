@@ -1,0 +1,154 @@
+-- Inserção de valores em ecommerce
+
+use ecommerce;
+
+show databases;
+
+use information_schema;
+desc table_constraints;
+
+select * from referential_constraints;
+ 
+show tables;
+
+DESC T_CLIENT;
+INSERT INTO T_CLIENT (client_Name, client_Type, client_CNPJ, client_Address)
+VALUES ('Ramos', 'PJ', '14141414141414', 'Rua D, 100');
+select * from T_CLIENT;
+
+
+DESC T_PRODUCT;
+INSERT INTO T_PRODUCT (product_Name, product_Category, product_Value)
+VALUES ('Smartphone XYZ', 'Eletrônico', 1500.00);
+
+INSERT INTO T_PRODUCT (product_Name, product_Category,product_Description,size, product_Value)
+VALUES ('Whey', 'Alimentício','Protena','900g', 101.950);
+select * from T_PRODUCT;
+
+INSERT INTO T_ORDER (id_Order_Client, order_Value, freight_value)
+VALUES (1, 1500.00, 20.00);
+
+INSERT INTO T_ORDER (id_Order_Client,order_Status,order_Description, order_Value, freight_value)
+VALUES (2,'Confirmado', 'Produto musculação ',20.50, 10.00);
+select * from T_ORDER;
+
+-- Inserindo dados na tabela T_STOCK
+INSERT INTO T_STOCK (stock_Address, stock_Quantity) VALUES 
+('Galpão Central, SP', 100),
+('Centro de Distribuição RJ', 50);
+select * from T_STOCK;
+
+-- Inserindo dados na tabela T_SUPPLIER
+INSERT INTO T_SUPPLIER (supplier_Social_Name, supplier_CNPJ, supllier_Address, supplier_contact) VALUES 
+('Fornecedor A', '11122233000144', 'Rua dos Fornecedores, 100', '11987654321'),
+('Fornecedor B', '55566677000188', 'Avenida das Entregas, 200', '21987654321');
+select * from T_SUPPLIER;
+
+-- Inserindo dados na tabela T_SELLER
+INSERT INTO T_SELLER (seller_Social_Name, seller_contact, seller_Address, seller_Type, seller_CPF, seller_CNPJ) VALUES 
+('Carlos Mendes', '11912345678', 'Rua dos Vendedores, 50', 'PF', '98765432100', NULL),
+('Loja ABC', '11987654321', 'Shopping Central, Loja 5', 'PJ', NULL, '99988877000111');
+select * from T_SELLER;
+
+-- Inserindo dados na tabela T_TRANSPORT
+INSERT INTO T_TRANSPORT (transport_Social_Name, transport_Email, transport_Address) VALUES 
+('Transportadora XPTO', 'contato@xpto.com', 'Rodovia BR-101, KM 23'),
+('Entrega Rápida', 'suporte@rapid.com', 'Rua das Transportadoras, 300');
+select * FROM T_TRANSPORT;
+
+-- Inserindo dados na tabela T_BANK
+INSERT INTO T_BANK (bank_Social_Name, bank_Email, bank_Address) VALUES 
+('Banco Alfa', 'contato@bancoalfa.com', 'Avenida Bancária, 1000'),
+('Banco Beta', 'suporte@bancobeta.com', 'Rua das Finanças, 500');
+select * FROM T_BANK;
+
+-- Inserindo dados na tabela T_PAYMENT_METHOD
+INSERT INTO T_PAYMENT_METHOD (method_Name) VALUES 
+('Cartão de Crédito'), 
+('Cartão de Débito'), 
+('Boleto'), 
+('Pix'), 
+('Dinheiro');
+select * FROM T_PAYMENT_METHOD;
+
+INSERT INTO T_PAYMENT (id_Order, id_Payment_Method, id_Bank, payment_Value, payment_Status) VALUES 
+(1, 1, 1, 1500.00, 'Aprovado'),
+(2, 4, NULL, 30.00, 'Aguardando');
+select * FROM T_PAYMENT;
+
+-- Inserindo dados na tabela T_DELIVERY
+INSERT INTO T_DELIVERY (id_Delivery_Order, id_Delivery_Transport, tracking_Code, status_Delivery) VALUES 
+(1, 1, 'XPTO12345', 'Em trânsito'),
+(2, 2, 'RAPID67890', 'Entregue');
+SELECT * FROM T_DELIVERY;
+
+-- Inserindo dados na tabela T_PRODUCT_STOCK
+INSERT INTO T_PRODUCT_STOCK (id_Pdct_S_product, id_Pdct_S_Stock, available_Quantity) VALUES 
+(1, 1, 50),
+(2, 2, 20);
+SELECT * FROM T_PRODUCT_STOCK;
+
+-- Inserindo dados na tabela T_STOCK_SUPPLIER
+INSERT INTO T_STOCK_SUPPLIER (id_SP_Stock, id_SP_Supplier, SP_Quantity, SP_date) VALUES 
+(1, 1, 30, '2025-02-07'),
+(2, 2, 20, '2025-02-07');
+SELECT * FROM T_STOCK_SUPPLIER;
+
+-- Inserindo dados na tabela T_PRODUCT_SELLER
+INSERT INTO T_PRODUCT_SELLER (id_PS_Product, id_PS_Seller, seller_Product_quantity) VALUES 
+(1, 1, 10),
+(2, 2, 5);
+SELECT * FROM T_PRODUCT_SELLER;
+
+-- Inserindo dados na tabela T_ORDER_PRODUCT
+INSERT INTO T_ORDER_PRODUCT (id_OP_Product, id_OP_Order, PO_Quantity, PO_Status) VALUES 
+(1, 1, 1, 'Disponível'),
+(3, 2, 3, 'Disponível');
+SELECT * FROM T_ORDER_PRODUCT;
+
+-- Selecionando todos os clientes
+SELECT * FROM T_CLIENT;
+
+-- Selecionando todos os produtos
+SELECT * FROM T_PRODUCT;
+
+-- Selecionando todos os pedidos
+SELECT * FROM T_ORDER;
+
+-- Selecionando todos os estoques
+SELECT * FROM T_STOCK;
+
+-- Selecionando todos os fornecedores
+SELECT * FROM T_SUPPLIER;
+
+-- Selecionando todos os vendedores
+SELECT * FROM T_SELLER;
+
+-- Selecionando todas as transportadoras
+SELECT * FROM T_TRANSPORT;
+
+-- Selecionando todos os bancos
+SELECT * FROM T_BANK;
+
+-- Selecionando todos os métodos de pagamento
+SELECT * FROM T_PAYMENT_METHOD;
+
+-- Selecionando todos os pagamentos
+SELECT * FROM T_PAYMENT;
+
+-- Selecionando todas as entregas
+SELECT * FROM T_DELIVERY;
+
+-- Selecionando todos os produtos em estoque
+SELECT * FROM T_PRODUCT_STOCK;
+
+-- Selecionando todas as relações entre estoque e fornecedores
+SELECT * FROM T_STOCK_SUPPLIER;
+
+-- Selecionando todas as relações entre produtos e vendedores
+SELECT * FROM T_PRODUCT_SELLER;
+
+-- Selecionando todos os produtos em pedidos
+SELECT * FROM T_ORDER_PRODUCT;
+
+

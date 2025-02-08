@@ -1,0 +1,176 @@
+-- Realização das Queries
+
+-- 1 - Rcuperações simples com SELECT Statement
+--     recuperar os dados dos clientes
+SELECT 
+    id_Client, 
+    client_Name, 
+    client_Type, 
+    client_CPF, 
+    client_CNPJ, 
+    client_Address 
+FROM 
+    T_CLIENT;
+
+
+-- 2 - Filtros com WHERE Statemen
+--     Busca pedidos confirmados de clientes do tipo "PJ"
+SELECT 
+    o.id_Order, 
+    c.client_Name, 
+    o.order_Status, 
+    o.order_Value
+FROM 
+    T_ORDER o
+JOIN 
+    T_CLIENT c ON o.id_Order_Client = c.id_Client
+WHERE 
+    o.order_Status = 'Confirmado' 
+    AND c.client_Type = 'PJ';
+
+-- 3 - Crie expressões para gerar atributos derivados
+--     Calcula o valor total a ser pago pelo cliente, incluindo o pedido e o frete.
+-- 	   Gera uma data relativa para referência, mostrando a data de "7 dias atrás"
+SELECT 
+    o.id_Order, 
+    c.client_Name, 
+    o.order_Value, 
+    o.freight_value, 
+    (o.order_Value + o.freight_value) AS total_Payment, 
+    CURRENT_DATE - INTERVAL 7 DAY AS last_Week_Date 
+FROM 
+    T_ORDER o
+JOIN 
+    T_CLIENT c ON o.id_Order_Client = c.id_Client;
+    
+-- 4 - Defina ordenações dos dados com ORDER BY
+--     Ordenar os pedidos pelo valor total (pedido + frete) de forma decrescente
+SELECT 
+    o.id_Order, 
+    c.client_Name, 
+    o.order_Value, 
+    o.freight_value, 
+    (o.order_Value + o.freight_value) AS total_Payment
+FROM 
+    T_ORDER o
+JOIN 
+    T_CLIENT c ON o.id_Order_Client = c.id_Client
+ORDER BY 
+    total_Payment DESC;
+-- 5 - Condições de filtros aos grupos – HAVING Statement
+-- Lista os clientes que fizeram pedidos
+-- Conta quantos pedidos cada cliente fez
+-- Soma o valor total gasto por cada cliente
+-- Filtra os clientes que gastaram mais de 1000 no total
+SELECT 
+    c.client_Name, 
+    COUNT(o.id_Order) AS total_Orders, 
+    SUM(o.order_Value) AS total_Spent
+FROM 
+    T_ORDER o
+JOIN 
+    T_CLIENT c ON o.id_Order_Client = c.id_Client
+GROUP BY 
+    c.client_Name
+HAVING 
+    SUM(o.order_Value) > 1000;
+    
+-- 6 - Crie junções entre tabelas para fornecer uma perspectiva mais complexa dos dados
+-- Retorna detalhes de cada pedido.
+-- Mostra quem fez o pedido, quantos produtos foram comprados, o valor total, o método de pagamento e o status do pagamento.
+-- Agrupa os dados para calcular valores totais por pedido.
+-- Ordena os pedidos de maior para menor valor.
+
+
+-- Querie para identificar quais produtos foram mais vendidos e quanto faturaram no total.
+    SELECT 
+    p.product_Name AS produto,
+    SUM(op.PO_Quantity) AS total_vendido,
+    ROUND(SUM(op.PO_Quantity * p.product_Value), 2) AS receita_total
+FROM 
+    T_ORDER_PRODUCT op
+INNER JOIN 
+    T_PRODUCT p ON op.id_OP_Product = p.id_Product
+INNER JOIN 
+    T_ORDER o ON op.id_OP_Order = o.id_Order
+WHERE 
+    o.order_Status = 'Confirmado'
+GROUP BY 
+    p.product_Name
+ORDER BY 
+    receita_total DESC
+LIMIT 10;
+-- ----------------------------------------------------------------
+-- Querie para saber quais clientes que mais gastaram na plataforma 
+SELECT 
+    c.client_Name AS cliente,
+    COUNT(o.id_Order) AS total_pedidos,
+    SUM(o.order_Value) AS total_gasto
+FROM 
+    T_CLIENT c
+INNER JOIN 
+    T_ORDER o ON c.id_Client = o.id_Order_Client
+WHERE 
+    o.order_Status = 'Confirmado'
+GROUP BY 
+    c.client_Name
+ORDER BY 
+    total_gasto DESC
+LIMIT 10;
+-- ----------------------------------------------------------------
+SELECT 
+    o.id_Order AS pedido,
+    c.client_Name AS cliente,
+    o.order_Value AS valor_total,
+    COALESCE(SUM(p.payment_Value), 0) AS total_pago,
+    (o.order_Value - COALESCE(SUM(p.payment_Value), 0)) AS saldo_pendente
+FROM 
+    T_ORDER o
+INNER JOIN 
+    T_CLIENT c ON o.id_Order_Client = c.id_Client
+LEFT JOIN 
+    T_PAYMENT p ON o.id_Order = p.id_Order
+WHERE 
+    o.order_Status = 'Confirmado'
+GROUP BY 
+    o.id_Order, c.client_Name, o.order_Value
+HAVING 
+    saldo_pendente > 0
+ORDER BY 
+    saldo_pendente DESC;
+    
+    
+-- Quais pedidos foram pagos através de Pix e qual o valor total?
+-- Combina WHERE com uma condição específica.
+SELECT 
+    o.id_Order, 
+    p.payment_Value
+FROM 
+    T_ORDER o
+JOIN 
+    T_PAYMENT p ON o.id_Order = p.id_Order
+JOIN 
+    T_PAYMENT_METHOD pm ON p.id_Payment_Method = pm.id_Payment_Method
+WHERE 
+    pm.method_Name = 'Pix';
+    
+    
+-- Querie para identificar quais produtos foram mais vendidos e quanto faturaram no total.
+    SELECT 
+    p.product_Name AS produto,
+    SUM(op.PO_Quantity) AS total_vendido,
+    ROUND(SUM(op.PO_Quantity * p.product_Value), 2) AS receita_total
+FROM 
+    T_ORDER_PRODUCT op
+INNER JOIN 
+    T_PRODUCT p ON op.id_OP_Product = p.id_Product
+INNER JOIN 
+    T_ORDER o ON op.id_OP_Order = o.id_Order
+WHERE 
+    o.order_Status = 'Confirmado'
+GROUP BY 
+    p.product_Name
+ORDER BY 
+    receita_total DESC
+LIMIT 10;
+

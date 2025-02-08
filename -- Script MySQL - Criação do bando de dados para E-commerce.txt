@@ -1,0 +1,186 @@
+-- Criação do bando de dados para cenário de E-commerce 
+
+CREATE DATABASE ecommerce;
+use ecommerce;
+
+show databases;
+show tables;
+
+DROP TABLE IF EXISTS T_PRODUCT_STOCK CASCADE;
+DROP TABLE IF EXISTS T_STOCK_SUPPLIER CASCADE;
+DROP TABLE IF EXISTS T_ORDER_PRODUCT CASCADE;
+DROP TABLE IF EXISTS T_PRODUCT_SELLER CASCADE;
+DROP TABLE IF EXISTS T_SELLER CASCADE;
+DROP TABLE IF EXISTS T_SUPPLIER CASCADE;
+DROP TABLE IF EXISTS T_STOCK CASCADE;
+DROP TABLE IF EXISTS T_ORDER CASCADE;
+DROP TABLE IF EXISTS T_PRODUCT CASCADE;
+DROP TABLE IF EXISTS T_CLIENT CASCADE;
+DROP TABLE IF EXISTS T_DELIVERY CASCADE;
+DROP TABLE IF EXISTS T_TRANSPORT CASCADE;
+DROP TABLE IF EXISTS  T_PAYMENT CASCADE;
+DROP TABLE IF EXISTS  T_PAYMENT_METHOD CASCADE;
+
+
+
+
+CREATE TABLE T_CLIENT (
+    id_Client INT AUTO_INCREMENT PRIMARY KEY,
+    client_Name VARCHAR(60) NOT NULL,
+    client_Type ENUM('PF', 'PJ') NOT NULL, -- Define se é PF ou PJ
+    client_CPF CHAR(11) UNIQUE NULL,  -- CPF deve ser único e opcional para PF
+    client_CNPJ CHAR(14) UNIQUE NULL, -- CNPJ deve ser único e opcional para PJ
+    client_Address VARCHAR(255) NOT NULL,
+    CONSTRAINT check_client_type CHECK (
+        (client_Type = 'PF' AND client_CPF IS NOT NULL AND client_CNPJ IS NULL) OR
+        (client_Type = 'PJ' AND client_CNPJ IS NOT NULL AND client_CPF IS NULL)
+    ) -- Garante que PF tem só CPF e PJ tem só CNPJ
+);
+
+CREATE TABLE T_PRODUCT(
+	id_Product int auto_increment primary key,
+    product_Name varchar(45) not null,
+    product_Category enum ('Eletrônico','Vestimenta','Brinquedo','Alimentício')not null,
+    product_Description varchar(255),
+    size varchar(10),
+    product_Value float not null
+);
+
+CREATE TABLE T_ORDER (
+    id_Order INT AUTO_INCREMENT PRIMARY KEY,
+    id_Order_Client INT,
+    order_Status ENUM('Confirmado', 'Cancelado', 'Em processamento') DEFAULT 'Em processamento',
+    order_Description VARCHAR(255),
+    order_Value float not null,    
+    freight_value FLOAT DEFAULT 10 ,
+    CONSTRAINT fk_order_client FOREIGN KEY (id_Order_Client) REFERENCES T_CLIENT(id_Client)  
+);
+
+CREATE TABLE T_STOCK(
+	id_Stock int auto_increment primary key,    
+	stock_Address varchar(255),
+    stock_Quantity int default 0 not null
+);
+
+CREATE TABLE T_SUPPLIER(
+	id_Supplier int auto_increment primary key,
+    supplier_Social_Name VARCHAR(45) not null,
+    supplier_CNPJ char (14) not null, 
+    supllier_Address varchar(255) not null,
+    supplier_contact char (11) not null,
+		constraint unique_supplier unique (supplier_CNPJ)
+);
+
+CREATE TABLE T_SELLER (
+    id_Seller INT AUTO_INCREMENT PRIMARY KEY,
+    seller_Social_Name VARCHAR(45) NOT NULL,
+    seller_contact CHAR(11) NOT NULL,
+    seller_Address VARCHAR(255) NOT NULL,
+    seller_Type ENUM('PF', 'PJ') NOT NULL, 
+    seller_CPF CHAR(11) UNIQUE NULL,  
+    seller_CNPJ CHAR(14) UNIQUE NULL, 
+    CONSTRAINT chk_seller_type CHECK (
+        (seller_Type = 'PF' AND seller_CPF IS NOT NULL AND seller_CNPJ IS NULL) OR
+        (seller_Type = 'PJ' AND seller_CNPJ IS NOT NULL AND seller_CPF IS NULL)
+    ) 
+);
+
+CREATE TABLE T_TRANSPORT(
+	id_Transport int auto_increment primary key,
+    transport_Social_Name varchar(45) not null,
+    transport_Email varchar(45) not null,
+    transport_Address varchar(255) not null
+);
+
+CREATE TABLE T_BANK(
+	id_Bank int auto_increment primary key ,
+    bank_Social_Name varchar(45) not null,
+    bank_Email varchar(45) not null,
+    bank_Address varchar(255) not null
+); 
+
+
+CREATE TABLE T_PAYMENT_METHOD (
+    id_Payment_Method INT AUTO_INCREMENT PRIMARY KEY,
+    method_Name ENUM('Cartão de Crédito', 'Cartão de Débito', 'Boleto', 'Pix', 'Dinheiro') NOT NULL UNIQUE
+);
+
+--  Início Tabelas de N:M
+
+CREATE TABLE T_PAYMENT (
+    id_Payment INT AUTO_INCREMENT PRIMARY KEY,
+    id_Order INT NOT NULL,
+    id_Payment_Method INT NOT NULL,
+    id_Bank INT, -- Se o pagamento for via banco
+    payment_Value FLOAT NOT NULL, -- Permite dividir o pagamento em diferentes métodos
+    payment_Status ENUM('Aguardando', 'Aprovado', 'Rejeitado') DEFAULT 'Aguardando',
+    payment_Date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_Order) REFERENCES T_ORDER(id_Order),
+    FOREIGN KEY (id_Payment_Method) REFERENCES T_PAYMENT_METHOD(id_Payment_Method),
+    FOREIGN KEY (id_Bank) REFERENCES T_BANK(id_Bank) -- Relacionamento opcional com banco
+);
+
+
+CREATE TABLE T_DELIVERY (
+    id_Delivery_Order INT,
+    id_Delivery_Transport INT,
+    tracking_Code VARCHAR(50) NOT NULL,
+    status_Delivery ENUM('Em trânsito', 'Entregue', 'Cancelado') NOT NULL DEFAULT 'Em trânsito',
+    PRIMARY KEY (id_Delivery_Order, id_Delivery_Transport),
+    constraint fk_id_delivery_order foreign key(id_Delivery_Order) references T_ORDER(id_Order),
+    constraint fk_id_delivery_transport foreign key (id_Delivery_Transport) references T_TRANSPORT(id_Transport)
+);
+
+CREATE TABLE T_PRODUCT_STOCK(
+	id_Pdct_S_product int,
+    id_Pdct_S_Stock int ,
+    available_Quantity int not null,
+    primary key (id_Pdct_S_product, id_Pdct_S_Stock ),
+    constraint fk_id_pdct_s_product foreign key (id_Pdct_S_product) references T_PRODUCT(id_Product),
+    constraint fk_id_pdct_s_stock   foreign key (id_Pdct_S_Stock) references T_STOCK(id_Stock)
+);
+
+CREATE TABLE T_STOCK_SUPPLIER(
+	id_SP_Stock int,
+    id_SP_Supplier int,
+    SP_Quantity int not null,
+    SP_date date  not null,
+    primary key (id_SP_Stock, id_SP_Supplier),
+    constraint fk_sp_stock foreign key(id_SP_Stock) references T_STOCK(id_Stock),
+	constraint fk_sp_supplier foreign key (id_SP_Supplier) references T_SUPPLIER(id_Supplier)
+);
+
+CREATE TABLE T_PRODUCT_SELLER(
+	id_PS_Product  int,
+	id_PS_Seller int,
+    seller_Product_quantity int default 1,
+    primary key (id_PS_Product, id_PS_Seller),
+    constraint fk_id_ps_Product foreign key (id_PS_Product) references T_PRODUCT(id_Product),
+    constraint fk_id_ps_Seller foreign key(id_PS_Seller) references T_SELLER(id_Seller)
+);
+
+CREATE TABLE T_ORDER_PRODUCT(
+	id_OP_Product int,
+    id_OP_Order   int,
+    PO_Quantity   int default 1,
+    PO_Status 	  enum ('Disponível', 'Sem estoque') default 'Disponível' ,
+    primary key (id_OP_Product, id_OP_Order),
+    constraint 	fk_id_op_product foreign key (id_OP_Product) references T_PRODUCT(id_Product),
+    constraint  fk_id_op_order foreign key(id_OP_Order) references T_ORDER (id_Order)
+);
+
+-- Fim Tabelas de N:M
+
+ALTER TABLE T_ORDER 
+ADD CONSTRAINT fk_order_client_fk FOREIGN KEY (id_Order_Client) REFERENCES T_CLIENT(id_Client);
+
+alter table T_CLIENT auto_increment =1;
+alter table T_PRODUCT auto_increment =1;
+alter table T_ORDER  auto_increment =1;
+alter table T_STOCK auto_increment =1;
+alter table T_SUPPLIER auto_increment =1;
+alter table T_SELLER auto_increment =1;
+alter table T_TRANSPORT auto_increment =1;
+alter table T_BANK auto_increment =1;
+alter table T_PAYMENT_METHOD auto_increment =1;
+alter table T_PAYMENT auto_increment =1;
